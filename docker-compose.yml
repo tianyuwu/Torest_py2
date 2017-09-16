@@ -1,0 +1,42 @@
+app:
+  build: .
+  volumes:
+     - .:/code
+  links:
+#     - mysql
+     - redis
+     - mongo
+  ports:
+    - "8080:8080"
+
+redis:
+  build: ./redis
+  ports:
+    - "6379:6379"
+
+mongo:
+  image: mongo
+  ports:
+    - "27017:27017"
+
+#postgres:
+#  image: postgres:9.6
+#  environment:
+#    DB_HOST: postgres
+#    DB_NAME: tpbdb
+#    DB_PORT: 5432
+#    DB_USER: dbuser
+#    DB_PASSWORD: 123kkk
+
+
+
+#mysql:
+#  image: mysql:5.6
+#  environment:
+#    MYSQL_ROOT_PASSWORD: its_a_secret_to_everybody
+#    MYSQL_USER: qingman
+#    MYSQL_PASSWORD: q1ngman
+#    MYSQL_DATABASE: qingmandb
+#  ports:
+#    - "3306:3306"
+
