@@ -87,6 +87,7 @@ class Application(tornado.web.Application):
                    handler._request_summary(), handler.request.arguments, request_time)
 
 
+
 class LogFormatter(LogFormatter):
     """修改默认输出日志格式"""
     def __init__(self):

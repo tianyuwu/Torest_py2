@@ -182,7 +182,8 @@ class PostgresDB(object):
             outstr = sqlstr % tuple(_parm)
         else:
             outstr = sqlstr
-        print '[SQL execute]', outstr.decode('utf-8')
+        # print outstr, type(outstr)
+        print '[SQL execute]', outstr
 
 
 class Row(dict):

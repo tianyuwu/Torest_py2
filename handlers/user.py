@@ -39,8 +39,23 @@ class DAOHandler(BaseHandler):
     @coroutine
     def get(self):
         """测试引入查询函数"""
-        data = yield self.select('users', condition='id>100')
+        # 查询多条
+        # data = yield self.select('users', condition='id>100')
+        # 查询单条
         # data = yield self.find('users', condition='id=100')
-        self.write_json(100, data)
+        data = {
+            'uuid': '1111111',
+            'tag': '测试',
+            'tag_type': 'company',
+            'priority': '0'
+        }
+        condition = {
+            'uuid': '1111111'
+        }
+        # 插入语句
+        # save_data = yield self.insert_one('option_tag', data)
+        # 更新语句
+        # save_data = yield self.update('option_tag', data, condition)
 
+        self.write_json(100, data)
 
