@@ -17,4 +17,31 @@
 - momoko
 - motor
 
-## 为什么不使用ORM
+## 怎么处理请求和响应？
+### 获取数据`handler.get_param()`
+get_param封装了wwww-form-data和application/json两种格式提交的参数，不管是常规的get，post请求，还是json格式提交的数据，均可以获取
+### 返回数据`handler.write_json()`
+返回通用规范的JSON数据
+
+## 如何进行数据操作？
+### CRUD实现
+### 缓存机制
+### 过滤器
+### 表单验证
+
+## 如何进行身份认证？
+### session/cookie方案
+### JWT
+#### 如何更新token
+
+## 如何收集，整理，利用日志？
+### 日志存储
+项目运行中产生的日志都会记录到mongodb数据库中，这样的好处是可以更方便对日志进行查询，分类以及筛选
+### 日志收集
+`self.log`对象，封装了logging的一些操作，方便在请求过程中实时记录日志
+### 日志打印
+格式，标准化，内容全面的teriminal输出
+
+## 如何缓存？
+
+## 微信开发相关

@@ -5,7 +5,7 @@ import json
 import datetime
 from tornado.web import RequestHandler
 from ext import redis_session
-from models import BaseModel
+from mixins import DAOMixin
 
 
 class ComplexEncoder(json.JSONEncoder):
@@ -20,7 +20,7 @@ class ComplexEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, obj)
 
-class BaseHandler(RequestHandler, BaseModel):
+class BaseHandler(RequestHandler, DAOMixin):
     def __init__(self, *argc, **argkw):
         super(BaseHandler, self).__init__(*argc, **argkw)
         # 依赖request_handler中的cookie相关方法
@@ -36,6 +36,23 @@ class BaseHandler(RequestHandler, BaseModel):
     @property
     def db(self):
         return self.application.db
+
+    def get_param(self, argument, argument_default=None):
+        """获取请求参数"""
+        if self.request.headers.get("Content-type") == 'application/json':
+            paramrs = self.request.body
+            if paramrs:
+                paramrs_dict = json.loads(paramrs)
+                _param = paramrs_dict.get(argument, argument_default)
+            else:
+                _param = argument_default
+        else:
+            _param = self.get_argument(argument, argument_default)
+            if not _param:
+                _param = argument_default
+
+        return _param
+
 
     def write_json(self, code, data=None):
         """返回json数据时用，默认正常时状态为100"""

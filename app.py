@@ -51,16 +51,17 @@ class Application(tornado.web.Application):
 
         # mongo_logger
         self.log = logging.getLogger('mongo_logger')
-        mon = MongoHandler(host=config.MONGO_HOST, database_name='mongo_logs')
-        mon.setLevel(logging.INFO)
-
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
-        # 所有日志添加到mongo_logs库
-        self.log.addHandler(mon)
-        access_log.addHandler(mon)
-        app_log.addHandler(mon)
-        gen_log.addHandler(mon)
+        # 生产环境中将所有日志添加到mongo_logs库
+        if config.DEBUG:
+            mon = MongoHandler(host=config.MONGO_HOST, database_name='mongo_logs')
+            mon.setLevel(logging.INFO)
+            self.log.addHandler(mon)
+            access_log.addHandler(mon)
+            app_log.addHandler(mon)
+            gen_log.addHandler(mon)
+
         # 当前应用日志打印到标准输出
         self.log.addHandler(ch)
 

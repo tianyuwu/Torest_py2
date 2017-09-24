@@ -10,19 +10,20 @@ from tornado.gen import coroutine
 from tornado.web import asynchronous
 
 from handlers import BaseHandler
+from mixins import CacheMixin
 
 
 class IndexHandler(BaseHandler):
 
     def get(self):
         """JSON数据返回测试"""
-        data = {"name":'111', "value":"333"}
+        data = {"title":'hello', "content":"world"}
         self.write_json(100, data)
 
 class GetParamHandler(BaseHandler):
     def post(self):
-        """获取content-type为：application/json格式的提交数据"""
-        params = self.request.body
+        """get_param可以获取content-type为：application/json格式的提交数据"""
+        params = self.get_param('name')
         self.write_json(100, params)
 
 class QueryHandler(BaseHandler):
@@ -33,6 +34,7 @@ class QueryHandler(BaseHandler):
         sqlstr = """select * from users limit 2"""
         data = yield self.db.query(sqlstr)
         self.write_json(100,data)
+
 
 class DAOHandler(BaseHandler):
     @asynchronous
@@ -59,3 +61,8 @@ class DAOHandler(BaseHandler):
 
         self.write_json(100, data)
 
+class CacheHandler(CacheMixin, BaseHandler):
+
+    def get(self):
+        print 'refresh'
+        self.write_json(100, 2222)

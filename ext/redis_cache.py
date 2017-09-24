@@ -24,26 +24,26 @@ class Redis_Cache(object):
         pass
 
     # 默认的数据保存时间长度（秒），缺省保留1天
-    def Set(self, key, value, expire_second=86400):
+    def set(self, key, value, expire_second=86400):
         self._db.set(key, value)
         if expire_second > 0:
             self._db.expire(key, expire_second)
 
-    def Get(self, key):
+    def get(self, key):
         return self._db.get(key)
 
-    def Del(self, key):
+    def delete(self, key):
         return self._db.delete(key)
 
-    def HSet(self, name, key, value, expire_second=86400):
+    def hset(self, name, key, value, expire_second=86400):
         self._db.hset(name, key, value)
         if expire_second > 0:
             self._db.expire(name, expire_second)
 
-    def HDel(self, name, key):
+    def hdel(self, name, key):
         self._db.hdel(name, key)
 
-    def HGet(self, name, key):
+    def hget(self, name, key):
         return self._db.hget(name, key)
 
 cache = Redis_Cache()
