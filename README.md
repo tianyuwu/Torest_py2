@@ -1,15 +1,15 @@
 # torest -- 开箱即用的通用rest api开发框架
 
 ## 特色功能
-[x] 基于tornado的异步Web Server
-[x] 基于redis的session会话支持
-[x] 基于redis的缓存方案，优雅的缓存读写实现
-[x] 基于mongodb的日志管理系统，优化日志收集体系，良好的标准输出
-[] docker一键部署环境依赖，实现全平台无缝移植
-[] 异步数据库操作层，封装了通用的操作，底层支持postgresql，mysql，mongodb三种数据库
-[] 微信api接入
-[] 七牛云上传
-[] 短信，邮件的发送
+- [x] 基于tornado的异步Web Server
+- [x] 基于redis的session会话支持
+- [x] 基于redis的缓存方案，优雅的缓存读写实现
+- [x] 基于mongodb的日志管理系统，优化日志收集体系，良好的标准输出
+- [ ] docker一键部署环境依赖，实现全平台无缝移植
+- [ ] 异步数据库操作层，封装了通用的操作，底层支持postgresql，mysql，mongodb三种数据库
+- [ ] 微信api接入
+- [ ] 七牛云上传
+- [ ] 短信，邮件的发送
 
 ## 如何运行
 ### virtualenv方式
@@ -36,14 +36,13 @@ docker-compose up
 
 ## 如何进行数据操作？
 ### CRUD实现
-### []缓存机制
-### []过滤器
-### []表单验证
+- [ ] 缓存机制
+- [ ] 过滤器
+- [ ] 表单验证
 
 ## 如何进行身份认证？
-### session/cookie方案
-### []JWT
-#### 如何更新token
+- [x] session/cookie方案
+- [ ] JWT
 
 ## 如何收集，整理，利用日志？
 ### 日志存储
@@ -54,5 +53,15 @@ docker-compose up
 格式，标准化，内容全面的teriminal输出
 
 ## 如何缓存？
+- [x] 接口缓存
+- [ ] 数据库查询缓存
 
 ## 微信开发相关
+- [ ] 微信授权登录
+- [ ] js-sdk签名认证
+- [ ] 微信机器人
+- [ ] 其他
+
+## 开源协议
+MIT License
+Copyright (c) 2017 tianyuwu
