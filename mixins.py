@@ -145,8 +145,10 @@ class DAOMixin(object):
 
 
 class CacheMixin(object):
-    """缓存接口数据，handler级的缓存"""
-
+    """
+    缓存接口数据，handler级的缓存
+    思路来源于 http://liyangliang.me/posts/2015/11/cache-response-in-tornado-and-flask/
+    """
     def _generate_key(self):
         key = pickle.dumps((self.request.path, self.request.arguments))
         return self._with_prefix(hashlib.sha1(key).hexdigest())
