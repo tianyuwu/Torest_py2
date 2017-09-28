@@ -1,4 +1,4 @@
-# torest -- 开箱即用的通用rest api开发框架
+# Torest -- 开箱即用的通用rest api开发框架
 ![](https://img.shields.io/github/license/mashape/apistatus.svg) [![Build Status](https://travis-ci.org/tianyuwu/torest.svg?branch=master)](https://travis-ci.org/tianyuwu/torest)
 ## 特色功能
 - [x] 基于tornado的异步Web Server
