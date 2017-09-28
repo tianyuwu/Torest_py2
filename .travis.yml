@@ -4,4 +4,4 @@ python:
   - "2.7"
 
 script:
-cd tests && python testrest.py
+  cd tests && python testrest.py
