@@ -41,7 +41,7 @@ class Tests(unittest.TestCase):
             pass'''
 
     def test_index(self):
-        self.assertEqual('200', 200)
+        self.assertEqual(200, 200)
 
 
 
