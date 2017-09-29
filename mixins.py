@@ -89,7 +89,7 @@ class DAOMixin(object):
         """查询多条"""
         where_str = self._conditions(condition)
         # offlit_str = """LIMIT %s,%s; """ % (self._offset, self._limit) if self._limit else ''
-        offlit_str = " OFFSET {0} LIMIT {1}; ".format(offset, limit)
+        offlit_str = " LIMIT {0} OFFSET {1}; ".format(limit, offset)
         select_str = "SELECT {0} FROM {1} ".format(fields, table)
         res = yield self.db.query(select_str + where_str + offlit_str)
         raise Return(res)

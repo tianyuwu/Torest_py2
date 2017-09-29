@@ -22,6 +22,8 @@ manager = Manager(description='The example manager')
 def hello():
     print 'heelo is done'
 
+@manager.command
+@coroutine
 def add_user(a, b):
     io_loop = tornado.ioloop.IOLoop.instance()
     dsn = 'dbname=%s user=%s password=%s host=%s port=%s' %\
