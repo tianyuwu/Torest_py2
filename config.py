@@ -10,7 +10,7 @@ MONGO_LOG_DATABASE = 'mongo_logs'
 # 数据库配置
 DB_HOST = '127.0.0.1'
 DB_PORT = '5432'
-DB_NAME = 'sxsdb'
+DB_NAME = 'torestdb'
 DB_USER = 'dbuser'
 DB_PASSWORD = '123kkk'
 

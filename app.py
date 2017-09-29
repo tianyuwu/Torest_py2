@@ -5,6 +5,7 @@ import os
 import time
 
 import sys
+import subprocess
 
 import signal
 import tornado.web
@@ -12,9 +13,9 @@ import tornado.options
 import tornado.httpserver
 import tornado.ioloop
 from log4mongo.handlers import MongoHandler
+from tornado.gen import coroutine
 from tornado.log import access_log, app_log, gen_log, LogFormatter
 from tornado.options import define, options
-
 import config
 # pg连接
 from ext.postgredb import PostgresDB
@@ -40,9 +41,9 @@ class Application(tornado.web.Application):
         super(Application, self).__init__(handlers=handlers, **settings)
 
 
-        dns = 'dbname=%s user=%s password=%s host=%s port=%s' %\
+        dsn = 'dbname=%s user=%s password=%s host=%s port=%s' %\
               (config.DB_NAME, config.DB_USER, config.DB_PASSWORD, config.DB_HOST, config.DB_PORT)
-        self.db = PostgresDB(dns, ioloop)
+        self.db = PostgresDB(dsn, ioloop)
         # mongodb
         # mongo_client = motor.motor_tornado.MotorClient('mongo', 27017)
         # self.db = mongo_client.blog
@@ -64,6 +65,18 @@ class Application(tornado.web.Application):
 
         # 当前应用日志打印到标准输出
         self.log.addHandler(ch)
+        # 创建表
+        self.maybe_create_tables()
+
+
+    @coroutine
+    def maybe_create_tables(self):
+        try:
+            yield self.db.dbpool.execute("SELECT COUNT(*) from users;")
+        except:
+            with open('schema.sql') as f:
+                sqlstr = f.read()
+            yield self.db.dbpool.execute(sqlstr)
 
 
     def log_request(self, handler):
