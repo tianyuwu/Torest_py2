@@ -3,11 +3,11 @@ app:
   volumes:
      - .:/code
   links:
-#     - mysql
+     - postgres
      - redis
      - mongo
   ports:
-    - "8080:8080"
+    - "8899:8899"
 
 redis:
   build: ./redis
@@ -19,16 +19,17 @@ mongo:
   ports:
     - "27017:27017"
 
-#postgres:
-#  image: postgres:9.6
-#  environment:
-#    DB_HOST: postgres
-#    DB_NAME: tpbdb
-#    DB_PORT: 5432
-#    DB_USER: dbuser
-#    DB_PASSWORD: 123kkk
-
-
+postgres:
+  restart: always
+  image: postgres:9.6
+  ports:
+    - "5432:5432"
+  environment:
+#    POSTGRES_USER: "dbuser"
+    POSTGRES_PASSWORD: "torestpw"
+#    POSTGRES_DB: "torest"
+  volumes:
+    - pgdata:/var/lib/postgresql/data/
 
 #mysql:
 #  image: mysql:5.6
