@@ -21,12 +21,18 @@ pip install -r requirements.txt
 python app.py
 ```
 ### docker方式
-docker方式运行需要事先安装docker以及docker-compose，在已经安装的前提下，执行运行下边命令
+docker方式运行需要事先安装docker以及docker-compose，在已经安装的前提下，执行下边命令
 ```
 docker-compose build
 docker-compose up
+# or
+docker-compose up --build
 ```
-
+由于日志内容过多，所以可以只看app容器的日志，所以可以这样运行：
+```
+docker-compose start redis mongo postgres
+docker-compose up app
+```
 
 ## 怎么处理请求和响应？
 ### 获取数据
