@@ -28,7 +28,7 @@ docker-compose up
 # or
 docker-compose up --build
 ```
-由于日志内容过多,如果需要只看app容器的日志，那么可以这样运行：
+由于日志内容过多，如果需要只看app容器的日志，那么可以这样运行：
 ```
 docker-compose start redis mongo postgres
 docker-compose up app
