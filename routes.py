@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from handlers import user, DefaultHandler
+from handlers import user, DefaultHandler, common
 
 handlers = [
     (r"/", user.IndexHandler),
@@ -9,5 +9,6 @@ handlers = [
     (r"/testquery", user.QueryHandler),
     (r"/testdao", user.DAOHandler),
     (r"/testcache", user.CacheHandler),
+    (r"/upload", common.UploadFileHandler),
     (r".*", DefaultHandler)
 ]
