@@ -22,6 +22,15 @@ STOTR_OPTIONS = {
     'redis_pass': '123kkk',
 }
 
+
+# 微信公众平台相关
+WECHAT_IGNORE = False
+WECHAT_APPID = 'wx315e6f5254db8d3c'
+WECHAT_SECRET = 'f0694bd1bfc97e81dc0a51ed57e033c4'
+WECHAT_TOKEN = 'wechat_token'
+WECHAT_OAUTH_URL = 'http://www.huimouke.com/api/login'
+
+
 try:
     from local_settings import *
 except ImportError:

@@ -7,3 +7,4 @@ ujson
 redis
 wtforms
 qiniu
+wechatpy

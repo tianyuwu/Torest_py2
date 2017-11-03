@@ -9,6 +9,7 @@ handlers = [
     (r"/testquery", user.QueryHandler),
     (r"/testdao", user.DAOHandler),
     (r"/testcache", user.CacheHandler),
+    (r"/testforms", user.FormsHandler),
     (r"/upload", common.UploadFileHandler),
     (r".*", DefaultHandler)
 ]

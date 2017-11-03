@@ -6,9 +6,13 @@
 @file: user.py
 @time: 2017/9/16 上午11:13
 """
+import json
+
 from tornado.gen import coroutine
 from tornado.web import asynchronous
 
+from ext.validator import validate
+from forms.test_form import TestForm
 from handlers import BaseHandler
 from mixins import CacheMixin
 
@@ -66,3 +70,10 @@ class CacheHandler(CacheMixin, BaseHandler):
     def get(self):
         print 'refresh'
         self.write_json(100, 2222)
+
+
+class FormsHandler(BaseHandler):
+    @validate(TestForm)
+    def post(self):
+        print self.form_data['msg']
+        self.write_json(100, self.form_data)

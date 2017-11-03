@@ -1,13 +1,13 @@
 # Torest -- 开箱即用的通用rest api开发框架
 ![](https://img.shields.io/github/license/mashape/apistatus.svg) [![Build Status](https://travis-ci.org/tianyuwu/Torest.svg?branch=master)](https://travis-ci.org/tianyuwu/Torest)
 ## 特色功能
-以下内容是本项目的持续开发计划，所有并不是所有功能都已实现，欢迎同仁们积极参与贡献代码
+以下内容是本项目的持续开发计划，并不是所有功能都已实现，欢迎同仁们积极参与贡献代码
 - [x] 基于tornado的异步Web Server
 - [x] 基于redis的session会话支持
 - [x] 基于redis的缓存方案，优雅的缓存读写实现
 - [x] 基于mongodb的日志管理系统，优化日志收集体系，良好的标准输出
 - [x] docker一键部署环境依赖，实现全平台无缝移植
-- [ ] 异步数据库操作层，封装了通用的操作，底层支持postgresql，mysql，mongodb三种数据库
+- [x] 基于PostgresSQL的异步数据库操作层，封装了通用的增删改查操作
 - [ ] 微信api接入
 - [ ] 七牛云上传
 - [ ] 短信，邮件的发送
@@ -16,7 +16,7 @@
 ### virtualenv方式
 1. 部署redis，mongodb，以及postgredb数据库
 2. 修改`config.py`中对应的配置项
-3. 进入项目根目录，执行下边命令
+3. 进入项目根目录，执行如下命令
 ```
 pip install -r requirements.txt
 python app.py
