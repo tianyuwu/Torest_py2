@@ -8,3 +8,4 @@ redis
 wtforms
 qiniu
 wechatpy
+PyJWT

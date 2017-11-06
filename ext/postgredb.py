@@ -14,6 +14,7 @@ enable_hstore = True if os.environ.get('MOMOKO_TEST_HSTORE', False) == '1' else 
 class PostgresDB(object):
     """为降低耦合，改用一个类封装以方便传入参数"""
     def __init__(self, dsn, ioloop):
+        self.adb_trans = []
         self.dbpool = momoko.Pool(
             dsn=dsn,
             size=1,
@@ -90,7 +91,7 @@ class PostgresDB(object):
         finally:
             raise gen.Return(rv)
 
-    def trans_exec(self, sqlstr, parm):
+    def trans_exec(self, sqlstr, *parm):
         """
         进行事务
         :param sqlstr:
