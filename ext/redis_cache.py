@@ -120,7 +120,7 @@ def async_cache(name, duration=-1):
             if cache._db.hexists(name, key):
                 try:  # 判断存在和返回之间还有一段时间，可能造成key不存在
                     print '[Cache %s HIT]%s ==> %s' % (name, method.__name__, key)
-                    result = eval(cache.HGet(name, key))
+                    result = eval(cache.hget(name, key))
                 except Exception as e:
                     print '[Cache %s is ERROR]%s' % e
                     result = None
@@ -129,7 +129,7 @@ def async_cache(name, duration=-1):
                 # 运行函数
                 result = yield method(*args, **kw)
                 # 保存结果
-                cache.HSet(name, key, result, duration)
+                cache.hset(name, key, result, duration)
                 print '[Cache %s REFRESH %s]%s ==> %s ' % (name, duration, method.__name__, key)
                 raise Return(result)
 
