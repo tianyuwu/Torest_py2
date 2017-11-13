@@ -55,15 +55,16 @@ class DAOMixin(object):
             values = []
             # preserve old behavior
             for k, v in query:
-                fields.append(k)
-                values.append(v)
+                if v is not None:
+                    fields.append(k)
+                    values.append(str(v))
 
             if not len(fields):
                 self.log.error('sql错误！')
             else:
                 fields_str = ','.join(fields)
                 values_str = "','".join(values)
-                sql_str = "({0) VALUES ('{1}')".format(fields_str, values_str)
+                sql_str = "({0}) VALUES ('{1}')".format(fields_str, values_str)
 
         elif isinstance(data_dict, str) or isinstance(data_dict, unicode):
             sql_str = data_dict
@@ -115,16 +116,20 @@ class DAOMixin(object):
         raise Return(rv)
 
     @coroutine
-    def insert_one(self, table, data_dict):
+    def insert_one(self, table, data_dict, return_id=False):
         """
         插入数据
-        :param table: 表名 
-        :param data_dict: 插入的数据 
+        :param table: 表名
+        :param data_dict: 插入的数据
         :return: True or False
         """
-        sql_str = "INSERT INTO {0} ".format(table)
+        sql_str = "INSERT INTO {0}".format(table)
         insert_str = self._get_insert_str(data_dict)
-        res = yield self.db.execute(sql_str + insert_str)
+        if not return_id:
+            res = yield self.db.execute(sql_str + insert_str)
+        else:
+            _res = yield self.db.execute_return(sql_str + insert_str + " RETURNING id")
+            res = _res.id
         raise Return(res)
 
     @coroutine
@@ -132,7 +137,7 @@ class DAOMixin(object):
         """
         更新数据
         :param table: 表名
-        :param data_dict: 要更新的数据 
+        :param data_dict: 要更新的数据
         :param condition: 更新条件
         :return: True or False
         """
