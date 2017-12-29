@@ -4,7 +4,7 @@ import json
 
 import datetime
 from tornado.web import RequestHandler
-from ext import redis_session
+from ext import rdsession
 from mixins import DAOMixin
 
 
@@ -20,11 +20,11 @@ class ComplexEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, obj)
 
-class BaseHandler(RequestHandler, DAOMixin):
+class BaseHandler(RequestHandler):
     def __init__(self, *argc, **argkw):
         super(BaseHandler, self).__init__(*argc, **argkw)
         # 依赖request_handler中的cookie相关方法
-        self.session = redis_session.Session(self.application.session_manager, self)
+        self.session = rdsession.Session(self.application.session_manager, self)
 
     def get_current_user(self):
         return self.session.get("user_name")

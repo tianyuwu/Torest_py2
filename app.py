@@ -18,9 +18,10 @@ from tornado.log import access_log, app_log, gen_log, LogFormatter
 from tornado.options import define, options
 import config
 # pg连接
+from ext.mglog import MgLog, log_request
 from ext.postgredb import PostgresDB
 # session库
-from ext import redis_session
+from ext import rdsession
 from routes import handlers
 
 define("port", default=8899, help="run on the given port", type=int)
@@ -33,6 +34,7 @@ class Application(tornado.web.Application):
             debug=config.DEBUG,
             allow_remote_access=True,
             cookie_secret=config.COOKIE_SECRET,
+            log_function=log_request,  # 日志格式修改
             # xsrf_cookies=True,
             # static_url_prefix="",  # static路径的前缀配置，在生产环境可以配置cdn
             # ui_modules=UIModules,
@@ -44,27 +46,9 @@ class Application(tornado.web.Application):
         dsn = 'dbname=%s user=%s password=%s host=%s port=%s' %\
               (config.DB_NAME, config.DB_USER, config.DB_PASSWORD, config.DB_HOST, config.DB_PORT)
         self.db = PostgresDB(dsn, ioloop)
-        # mongodb
-        # mongo_client = motor.motor_tornado.MotorClient('mongo', 27017)
-        # self.db = mongo_client.blog
+        self.session_manager = rdsession.SessionManager(config.SESSION_SECRET, config.STOTR_OPTIONS)
+        self.log = MgLog(config.MONGO_HOST, debug=config.DEBUG).logger
 
-        self.session_manager = redis_session.SessionManager(config.SESSION_SECRET, config.STOTR_OPTIONS)
-
-        # mongo_logger
-        self.log = logging.getLogger('mongo_logger')
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        # 生产环境中将所有日志添加到mongo_logs库
-        if config.DEBUG:
-            mon = MongoHandler(host=config.MONGO_HOST, database_name='mongo_logs')
-            mon.setLevel(logging.INFO)
-            self.log.addHandler(mon)
-            access_log.addHandler(mon)
-            app_log.addHandler(mon)
-            gen_log.addHandler(mon)
-
-        # 当前应用日志打印到标准输出
-        self.log.addHandler(ch)
         # 创建表
         self.maybe_create_tables()
 
@@ -78,37 +62,6 @@ class Application(tornado.web.Application):
                 sqlstr = f.read()
             yield self.db.dbpool.execute(sqlstr)
 
-
-    def log_request(self, handler):
-        """Writes a completed HTTP request to the logs.
-
-        By default writes to the python root logger.  To change
-        this behavior either subclass Application and override this method,
-        or pass a function in the application settings dictionary as
-        ``log_function``.
-        """
-        if "log_function" in self.settings:
-            self.settings["log_function"](handler)
-            return
-        if handler.get_status() < 400:
-            log_method = tornado.log.access_log.info
-        elif handler.get_status() < 500:
-            log_method = tornado.log.access_log.warning
-        else:
-            log_method = tornado.log.access_log.error
-        request_time = 1000.0 * handler.request.request_time()
-        log_method("%d %s %s %.2fms", handler.get_status(),
-                   handler._request_summary(), handler.request.arguments, request_time)
-
-
-
-class LogFormatter(LogFormatter):
-    """修改默认输出日志格式"""
-    def __init__(self):
-        super(LogFormatter, self).__init__(
-            fmt='%(color)s[%(asctime)s %(filename)s:%(funcName)s:%(lineno)d %(levelname)s]%(end_color)s %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
 
 
 class App:
@@ -160,12 +113,10 @@ class App:
 
     def main_loop(self):
         options.parse_command_line()
-        # 日志格式设置
-        [i.setFormatter(LogFormatter()) for i in logging.getLogger().handlers]
         # if options.debug == 'debug':
         #     import pdb
         #     pdb.set_trace()  #引入相关的pdb模块进行断点调试
-        logging.info('Init Server...')
+        print('Init Server...')
         self.mainApp = Application(self.io_loop)
         self.http_server = tornado.httpserver.HTTPServer(self.mainApp, xheaders=True)
         self.http_server.listen(options.port)

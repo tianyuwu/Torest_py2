@@ -13,6 +13,7 @@ class TelephoneForm(Form):
     area_code    = wtforms.IntegerField('area_code', [validators.required()])
     number       = wtforms.StringField('number')
 
+
 class TestForm(TornadoForm):
     msg = wtforms.StringField('msg',  [validators.Length(min=4, max=23)])
     lst = wtforms.FieldList(wtforms.StringField('lst'))  # 数组

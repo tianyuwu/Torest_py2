@@ -7,6 +7,8 @@
 @time: 2017/9/16 上午11:13
 """
 import json
+from collections import OrderedDict
+from datetime import datetime
 
 from tornado.gen import coroutine
 from tornado.web import asynchronous
@@ -48,20 +50,21 @@ class DAOHandler(BaseHandler):
         # 查询多条
         # data = yield self.select('users', condition='id>100')
         # 查询单条
-        # data = yield self.find('users', condition='id=100')
-        data = {
-            'uuid': '1111111',
-            'tag': '测试',
-            'tag_type': 'company',
-            'priority': '0'
-        }
-        condition = {
-            'uuid': '1111111'
-        }
+        # conditions = OrderedDict()
+        # conditions['gender'] = 2
+        data = yield self.db.select('users', fields="nick_name, gender",condition="gender=%s", params=[2])
+        # data = {
+        #     'content': 'akdhk',
+        #     'creation_time': datetime.now(),
+        #     'status': 'normal'
+        # }
+        # condition = {
+        #     'uuid': '1111111'
+        # }
         # 插入语句
-        # save_data = yield self.insert_one('option_tag', data)
+        # save_data = yield self.db.insert('signature', data)
         # 更新语句
-        # save_data = yield self.update('option_tag', data, condition)
+        # save_data = yield self.db.update('signature', data, condition=dict(id=3))
 
         self.write_json(100, data)
 
@@ -73,6 +76,7 @@ class CacheHandler(CacheMixin, BaseHandler):
 
 
 class FormsHandler(BaseHandler):
+
     @validate(TestForm)
     def post(self):
         print self.form_data['msg']

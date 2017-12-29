@@ -8,6 +8,8 @@ import momoko
 import os
 from tornado import gen
 from psycopg2.extras import RealDictCursor
+from tornado.log import app_log
+
 enable_hstore = True if os.environ.get('MOMOKO_TEST_HSTORE', False) == '1' else False
 
 
@@ -40,52 +42,103 @@ class PostgresDB(object):
         #     # This is the other way to run ioloop in sync
         #     ioloop.run_sync(lambda: future)
 
+
     @gen.coroutine
-    def execute(self, sqlstr, *parm):
+    def find(self, table, fields='*', condition=None, params=None):
+        """查询单条"""
+        where_str, _params = self.__conditions(condition)
+        if not params:
+            params = _params
+        select_str = "SELECT {0} FROM {1} ".format(fields, table)
+        res = yield self.execute('find', select_str + where_str, *params)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def select(self, table, fields='*', condition=None, offset=0, limit=10, params=None):
+        """查询多条"""
+        where_str, _params = self.__conditions(condition)
+        if not params:
+            params = _params
+
+        select_str = "SELECT {0} FROM {1} {2} LIMIT {3} OFFSET {4}".\
+            format(fields, table, where_str, limit, offset)
+        res = yield self.execute('select', select_str, *params)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def count(self, table, condition=None, params=None):
+        """统计条数"""
+        where_str, _params = self.__conditions(condition)
+        if not params:
+            params = _params
+        count_str = "SELECT count(1) as num FROM {0} {1}".format(table, where_str)
+        res = yield self.execute('find', count_str, *params)
+        if res:
+            rv = res['num']
+        else:
+            rv = 0
+        raise gen.Return(rv)
+
+    @gen.coroutine
+    def insert(self, table, data_dict, return_id=False):
         """
-        执行插入或者更新，返回true或者false
-        :param sqlstr:
-        :param parm:
-        :return:
+        插入数据
+        :param table: 表名
+        :param data_dict: 插入的数据
+        :return: True or False
         """
-        self.__print_sql(sqlstr, parm)
+        sql_str = "INSERT INTO {0}".format(table)
+        insert_str, params = self.__get_insert_str(data_dict)
+        if not return_id:
+            res = yield self.execute('exec', sql_str + insert_str, *params)
+        else:
+            _res = yield self.execute('find', sql_str + insert_str + " RETURNING id", *params)
+            res = _res.id
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def update(self, table, data_dict, condition, params=None):
+        """
+        更新数据
+        :param table: 表名
+        :param data_dict: 要更新的数据
+        :param condition: 更新条件
+        :param params: 传入的参数(list格式)，仅当字符串传入时候需要
+        :return: True or False
+        """
+        update_str, _params = self.__get_update_str(data_dict)
+        condition_str, _params1 = self.__conditions(condition)
+        if not params:
+            _params.extend(_params1)
+            params = _params
+
+        sql_str = "UPDATE {0} SET {1} {2}".format(table, update_str, condition_str)
+        res = yield self.execute('exec', sql_str, *params)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def execute(self, action, sqlstr, *parm):
+        """
+        发送sql语句，返回执行结果
+        """
         rv = True
         try:
             cursor = yield self.dbpool.execute(sqlstr, parm)
             if not cursor:
                 rv = False
             else:
-                rv = True
+                if action == 'exec':
+                    rv = True
+                elif action == 'find':
+                    rv = cursor.fetchone()
+                elif action == 'select':
+                    rv = cursor.fetchall()
+
+            app_log.info(self.__print_sql(sqlstr, parm))
 
         except Exception as e:
-            #self.PrintSqlStr(sqlstr, parm)
-            errormsg = '[sql error]' + repr(e)
-            print errormsg
-            rv = False
-
-        finally:
-            raise gen.Return(rv)
-
-    @gen.coroutine
-    def execute_return(self, sqlstr, *parm):
-        """
-        执行插入或者更新，返回插入或更新的行信息
-        :param sqlstr:
-        :param parm:
-        :return:
-        """
-        self.__print_sql(sqlstr, parm)
-        try:
-            cursor = yield self.dbpool.execute(sqlstr, parm)
-            if not cursor:
-                rv = False
-            else:
-                rv = Row(cursor.fetchone())
-
-        except Exception as e:
-            #self.PrintSqlStr(sqlstr, parm)
-            errormsg = '[sql error]' + repr(e)
-            print errormsg
+            error_msg = self.__print_sql(sqlstr, parm) + '\n' + repr(e)
+            app_log.error(error_msg)
             rv = False
 
         finally:
@@ -98,7 +151,7 @@ class PostgresDB(object):
         :param parm:
         :return:
         """
-        self.__print_sql(sqlstr, parm)
+        app_log.info(self.__print_sql(sqlstr, parm))
         if not self.adb_trans:
             self.adb_trans = []
 
@@ -118,64 +171,88 @@ class PostgresDB(object):
                 rv = False
 
         except Exception as e:
-            errormsg = '[sql error]' + repr(e)
-            print errormsg
+            error_msg = '[sql error]' + repr(e)
+            app_log.error(error_msg)
             rv = False
 
         finally:
             self.adb_trans = []
             raise gen.Return(rv)
 
-    @gen.coroutine
-    def query(self, sqlstr, *parm):
+
+    def __conditions(self, condition):
         """
-        执行查询，返回多条结果
-        :param sqlstr:
-        :param parm:
-        :return:
+        查询条件，支持两种方式，字典和字符串，字符串需要用到单引号
+        eg： "nick_name='Whitney'
+                or
+            {"nick_name":"Whitney"}
+        :return 返回sql片段和参数
         """
-        rv = []
-        self.__print_sql(sqlstr, parm)
-        try:
-            cursor = yield self.dbpool.execute(sqlstr, parm)
-            _fetch = cursor.fetchall()
-            if _fetch:
-                rv = [Row(row) for row in _fetch]
+        condition_sql = ''
+        params = ''
+        if hasattr(condition, "items"):
+            # mapping objects
+            query = condition.items()
+            l = []
+            params = []
+            # preserve old behavior
+            for k, v in query:
+                if v:
+                    l.append("{}=%s".format(k))
+                    params.append(v)
 
-        except Exception as e:
-            errormsg = '[sql error]' + repr(e)
-            print errormsg
-            raise errormsg
+            if len(l):
+                condition_sql = "where "+' AND '.join(l)
+            else:
+                condition_sql = ''
 
-        finally:
-            raise gen.Return(rv)
+        elif isinstance(condition, str) or isinstance(condition, unicode):
+            condition_sql = "WHERE " + condition
 
-    @gen.coroutine
-    def get(self, sqlstr, *parm):
+        return condition_sql, params
+
+
+    def __get_insert_str(self, data_dict):
         """
-        执行查询，返回一条结果
-        :param sqlstr:
-        :param parm:
-        :return:
+        组合插入的sql
         """
-        rv = None
-        self.__print_sql(sqlstr, parm)
-        try:
-            cursor = yield self.dbpool.execute(sqlstr, parm)
-            _fetch = cursor.fetchone()
-            if _fetch:
-                rv = Row(_fetch)
+        sql_str = ''
+        params = []
+        if hasattr(data_dict, "items"):
+            # mapping objects
+            query = data_dict.items()
+            fields = []
+            values = []
+            # preserve old behavior
+            for k, v in query:
+                fields.append(k)
+                values.append('%s')
+                params.append(v)
 
+            fields_str = ','.join(fields)
+            values_str = ",".join(values)
+            sql_str = "({0}) VALUES ({1})".format(fields_str, values_str)
 
-        except Exception as e:
-            errormsg = '[sql error]' + repr(e)
-            print errormsg
-            raise errormsg
+        elif isinstance(data_dict, str) or isinstance(data_dict, unicode):
+            sql_str = data_dict
 
-        finally:
-            raise gen.Return(rv)
+        return sql_str, params
+
+    def __get_update_str(self, data_dict):
+        if hasattr(data_dict, "items"):
+            l = []
+            args = []
+            for k, v in data_dict.items():
+                l.append("{0}=%s".format(k))
+                args.append(v)
+            if len(l):
+                sql_str = ",".join(l)
+            else:
+                sql_str = ''
+            return sql_str, args
 
     def __print_sql(self, sqlstr, parm):
+        """打印完整的sql语句，方便调试"""
         _parm = []
         if parm:
             for p in parm:
@@ -183,14 +260,5 @@ class PostgresDB(object):
             outstr = sqlstr % tuple(_parm)
         else:
             outstr = sqlstr
-        # print outstr, type(outstr)
-        print '[SQL execute]', outstr
 
-
-class Row(dict):
-    """A dict that allows for object-like property access syntax."""
-    def __getattr__(self, name):
-        try:
-            return self[name]
-        except KeyError:
-            raise AttributeError(name)
+        return 'SQL execute:\n{}'.format(outstr.decode('utf-8'))
