@@ -93,7 +93,7 @@ class PostgresDB(object):
             res = yield self.execute('exec', sql_str + insert_str, *params)
         else:
             _res = yield self.execute('find', sql_str + insert_str + " RETURNING id", *params)
-            res = _res.id
+            res = _res['id'] if _res else None
         raise gen.Return(res)
 
     @gen.coroutine
